@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Replayer Winamax - Version Finale</title>
+  <title>Replayer Winamax - Table Ovale + Flèches</title>
   <style>
     body {
       background: radial-gradient(circle at center, #005c2e 0%, #003f1f 100%);
@@ -34,17 +34,18 @@
       margin-top: 20px;
       background: #004927;
       border: 2px solid #111;
-      border-radius: 12px;
+      border-radius: 50% / 30%; /* ✅ Forme ovale ! */
       padding: 20px;
-      max-width: 800px;
+      max-width: 1000px; /* ✅ Plus large */
+      height: 500px; /* ✅ Plus haut */
       margin-left: auto;
       margin-right: auto;
-      position: relative; /* ✅ pour positionner pot & mainCounter à l'intérieur */
+      position: relative;
     }
 
     #tableArea {
       position: relative;
-      width: 400px;
+      width: 500px;
       height: 400px;
       margin: 0 auto 20px auto;
     }
@@ -129,6 +130,30 @@
       margin: 0 auto;
     }
 
+    .arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 40px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 50%;
+      padding: 10px 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .arrow:hover {
+      background: rgba(0,0,0,0.6);
+    }
+
+    .arrow-left {
+      left: 10px;
+    }
+
+    .arrow-right {
+      right: 10px;
+    }
+
     button {
       background: #222;
       color: #fff;
@@ -157,9 +182,13 @@
   <button onclick="parseAllHands()">Charger les mains</button>
 
   <div id="table" style="display:none;">
-    <!-- ✅ Pot et MainCounter INSIDE le cadre noir -->
+    <!-- Pot & Main Counter dans le cadre -->
     <div id="pot" style="position: absolute; top: 10px; left: 20px;"></div>
     <div id="mainCounter" style="position: absolute; top: 10px; right: 20px;"></div>
+
+    <!-- Flèches gauche/droite pour changer de main -->
+    <div class="arrow arrow-left" onclick="prevHand()">⏪</div>
+    <div class="arrow arrow-right" onclick="nextHand()">⏩</div>
 
     <div id="tableArea">
       <div id="board" class="cards"></div>
@@ -175,8 +204,6 @@
     <div style="margin-top:20px;">
       <button onclick="prevStep()">⏮️ Précédent</button>
       <button onclick="nextStep()">⏭️ Suivant</button>
-      <button onclick="prevHand()">⏮️ Main Précédente</button>
-      <button onclick="nextHand()">⏭️ Main Suivante</button>
     </div>
   </div>
 
@@ -221,8 +248,8 @@
       const pc = document.getElementById('playersCircle'); pc.innerHTML = '';
       players.forEach((p, i) => {
         let c = document.createElement('div'); c.className = 'player-container';
-        let a = (360 / players.length) * i - 90, radius = 200;
-        let rad = a * (Math.PI / 180), x = radius * Math.cos(rad), y = radius * Math.sin(rad);
+        let a = (360 / players.length) * i - 90, radius = 300; // ✅ Rayon + grand pour table ovale
+        let rad = a * (Math.PI / 180), x = radius * Math.cos(rad), y = radius * Math.sin(rad) * 0.6; // ✅ Y compressé pour ovale
         c.style.left = `calc(50% + ${x}px)`; c.style.top = `calc(50% + ${y}px)`;
         let b = document.createElement('span'); b.innerText = p.name.split(' ')[0]; b.className = 'player-badge'; b.style.background = p.color; b.id = `player-${i}`;
         let role = document.createElement('span'); role.className = 'role-badge'; let rt = ''; if (p.seat.includes(buttonSeat)) rt = 'BTN'; else if (p.name.startsWith(smallBlindPlayer)) rt = 'SB'; else if (p.name.startsWith(bigBlindPlayer)) rt = 'BB'; role.innerText = rt;
