@@ -187,7 +187,14 @@
   <script>
     let allHands = [], currentHandIndex = 0, steps = [], currentStep = 0, players = [], foldedPlayers = [];
     const playerColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4'];
-
+    
+function formatPot(amount) {
+  if (amount >= 1000) {
+    return (amount / 1000).toFixed(1).replace('.', ',') + 'k';
+  } else {
+    return amount.toString();
+  }
+}
     function parseAllHands() {
       const text = document.getElementById('input').value;
       const rawHands = text.split(/Winamax Poker/).filter(h => h.trim() !== '');
@@ -251,7 +258,7 @@
           potAmount += parseInt(numbers[numbers.length - 1]);
         }
       }
-      document.getElementById('pot').innerText = `💰 Pot: ${potAmount}`;
+      document.getElementById('pot').innerText = `💰 Pot: ${formatPot(potAmount)}`;
 
       players.forEach((p, i) => {
         let b = document.getElementById(`player-${i}`);
@@ -281,14 +288,6 @@
       const r = { '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', 'T': '10', 'J': 'jack', 'Q': 'queen', 'K': 'king', 'A': 'ace' };
       const s = { 'c': 'clubs', 'd': 'diamonds', 'h': 'hearts', 's': 'spades' };
       return `${r[code[0].toUpperCase()] || 'X'}_of_${s[code[1].toLowerCase()] || 'unknown'}.png`;
-
-      function formatPot(amount) {
-  if (amount >= 1000) {
-    return (amount / 1000).toFixed(1).replace('.', ',') + 'k';
-  } else {
-    return amount.toString();
-  }
-}
 
     }
   </script>
