@@ -2,417 +2,101 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Replayer Winamax - Final Board Dynamique</title>
+  <title>Replayer Winamax - Board Béton</title>
   <style>
-    body {
-      background: radial-gradient(circle at center, #005c2e 0%, #003f1f 100%);
-      color: #fff;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
-    }
-
-    textarea {
-      width: 90%;
-      height: 80px;
-      border-radius: 8px;
-      padding: 10px;
-      font-size: 14px;
-    }
-
-    #table {
-      margin-top: 20px;
-      background: #004927;
-      border: 2px solid #111;
-      border-radius: 12px;
-      padding: 20px;
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    #tableArea {
-      position: relative;
-      width: 400px;
-      height: 400px;
-      margin: 0 auto 20px auto;
-    }
-
-    #board {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    #playersCircle {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    .player-container {
-      position: absolute;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      transform: translate(-50%, -50%);
-    }
-
-    .player-badge {
-      padding: 10px 15px;
-      border-radius: 30px;
-      background: gray;
-      color: white;
-      font-weight: bold;
-      transition: all 0.2s;
-      min-width: 80px;
-      text-align: center;
-    }
-
-    .player-active {
-      border: 3px solid #fff;
-      box-shadow: 0 0 10px #fff;
-    }
-
-    .player-folded {
-      filter: grayscale(100%);
-      opacity: 0.5;
-    }
-
-    .role-badge {
-      display: block;
-      margin-top: 5px;
-      background: #111;
-      color: #fff;
-      border-radius: 10px;
-      padding: 2px 6px;
-      font-size: 12px;
-    }
-
-    .cards {
-      margin: 10px auto;
-    }
-
-    .cards img {
-      width: 60px;
-      height: auto;
-      margin: 3px;
-      border-radius: 4px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    }
-
-    #heroHand {
-      margin-bottom: 20px;
-    }
-
-    #action {
-      background: rgba(0,0,0,0.5);
-      padding: 15px;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    button {
-      background: #222;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 10px 20px;
-      margin: 5px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    button:hover {
-      background: #444;
-    }
-
-    h1 {
-      font-weight: normal;
-    }
+    body { background: radial-gradient(circle at center, #005c2e 0%, #003f1f 100%); color: #fff; font-family: 'Segoe UI', Arial, sans-serif; text-align: center; padding: 20px; }
+    textarea { width: 90%; height: 80px; border-radius: 8px; padding: 10px; font-size: 14px; }
+    #table { margin-top: 20px; background: #004927; border: 2px solid #111; border-radius: 12px; padding: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }
+    #tableArea { position: relative; width: 400px; height: 400px; margin: 0 auto 20px auto; }
+    #board { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    #playersCircle { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    .player-container { position: absolute; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -50%); }
+    .player-badge { padding: 10px 15px; border-radius: 30px; background: gray; color: white; font-weight: bold; transition: all 0.2s; min-width: 80px; text-align: center; }
+    .player-active { border: 3px solid #fff; box-shadow: 0 0 10px #fff; }
+    .player-folded { filter: grayscale(100%); opacity: 0.5; }
+    .role-badge { display: block; margin-top: 5px; background: #111; color: #fff; border-radius: 10px; padding: 2px 6px; font-size: 12px; }
+    .cards { margin: 10px auto; }
+    .cards img { width: 60px; height: auto; margin: 3px; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+    #heroHand { margin-bottom: 20px; }
+    #action { background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; font-size: 16px; font-weight: bold; max-width: 600px; margin: 0 auto; }
+    button { background: #222; color: #fff; border: none; border-radius: 6px; padding: 10px 20px; margin: 5px; font-size: 14px; cursor: pointer; transition: background 0.2s; }
+    button:hover { background: #444; }
+    h1 { font-weight: normal; }
   </style>
 </head>
 <body>
   <h1>Winamax Poker Replayer</h1>
-
   <textarea id="input" placeholder="Colle ici tes mains Winamax..."></textarea><br>
   <button onclick="parseAllHands()">Charger les mains</button>
-
   <div id="table" style="display:none;">
     <div id="tableArea">
       <div id="board" class="cards"></div>
       <div id="playersCircle"></div>
     </div>
-
     <h3>Votre Main</h3>
     <div id="heroHand" class="cards"></div>
-
     <h3>Action</h3>
     <div id="action"></div>
-
     <div style="margin-top:20px;">
       <button onclick="prevStep()">⏮️ Précédent</button>
       <button onclick="nextStep()">⏭️ Suivant</button>
       <button onclick="nextHand()">⏭️ Main Suivante</button>
     </div>
   </div>
-
   <script>
-    let allHands = [];
-    let currentHandIndex = 0;
-    let steps = [];
-    let currentStep = 0;
-    let players = [];
-    let foldedPlayers = [];
+    let allHands = [], currentHandIndex = 0, steps = [], currentStep = 0, players = [], foldedPlayers = [];
     const playerColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4'];
-
     function parseAllHands() {
       const text = document.getElementById('input').value;
       const rawHands = text.split(/Winamax Poker/).filter(h => h.trim() !== '');
       allHands = rawHands.map(h => 'Winamax Poker' + h);
-      currentHandIndex = 0;
-      parseOneHand(allHands[currentHandIndex]);
+      currentHandIndex = 0; parseOneHand(allHands[currentHandIndex]);
     }
-
     function parseOneHand(text) {
-      steps = [];
-      currentStep = 0;
-      players = [];
-      foldedPlayers = [];
-
-      let buttonSeat = '';
-      let smallBlindPlayer = '';
-      let bigBlindPlayer = '';
-
-      const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
-
-      let hero = '';
-      let heroHand = [];
-      let currentBoard = [];
-      let phase = 'header';
-
+      steps = []; currentStep = 0; players = []; foldedPlayers = [];
+      let buttonSeat = '', smallBlindPlayer = '', bigBlindPlayer = '', lines = text.split('\n').map(l => l.trim()).filter(l => l !== ''), hero = '', heroHand = [], currentBoard = [], phase = 'header';
       for (let line of lines) {
-        if (line.startsWith('Seat ')) {
-          const parts = line.split(':');
-          const seat = parts[0];
-          const player = parts[1].trim();
-          players.push({ seat, name: player, color: playerColors[players.length] });
-        }
-
-        if (line.includes('Seat #') && line.includes('is the button')) {
-          buttonSeat = line.split(' ')[1].replace('#', '');
-        }
-
-        if (line.includes('posts small blind')) {
-          smallBlindPlayer = line.split(' ')[0];
-        }
-
-        if (line.includes('posts big blind')) {
-          bigBlindPlayer = line.split(' ')[0];
-        }
-
-        if (line.startsWith('Dealt to')) {
-          hero = line.split(' ')[2];
-          heroHand = line.match(/\[(.*?)\]/)[1].split(' ');
-        }
-
-        if (line.startsWith('*** FLOP ***')) {
-          const flop = line.match(/\[(.*?)\]/)[1].split(' ');
-          currentBoard = flop;
-        } else if (line.startsWith('*** TURN ***')) {
-          const turn = line.match(/\[(.*?)\]/)[1].split(' ').pop();
-          currentBoard.push(turn);
-        } else if (line.startsWith('*** RIVER ***')) {
-          const river = line.match(/\[(.*?)\]/)[1].split(' ').pop();
-          currentBoard.push(river);
-        } else if (line.startsWith('***') || line.startsWith('Dealt to') || line.includes('shows')) {
-          // phases, on ne push pas encore
-        } else if (hero && phase !== 'header') {
-          steps.push({
-            heroHand: [...heroHand],
-            board: [...currentBoard], // ✅ on garde le board correct ici
-            action: line
-          });
-        }
-
+        if (line.startsWith('Seat ')) { let parts = line.split(':'); players.push({ seat: parts[0], name: parts[1].trim(), color: playerColors[players.length] }); }
+        if (line.includes('Seat #') && line.includes('is the button')) buttonSeat = line.split(' ')[1].replace('#', '');
+        if (line.includes('posts small blind')) smallBlindPlayer = line.split(' ')[0];
+        if (line.includes('posts big blind')) bigBlindPlayer = line.split(' ')[0];
+        if (line.startsWith('Dealt to')) { hero = line.split(' ')[2]; heroHand = line.match(/\[(.*?)\]/)[1].split(' '); }
+        if (line.startsWith('*** FLOP ***')) { currentBoard = line.match(/\[(.*?)\]/)[1].split(' '); steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line }); }
+        else if (line.startsWith('*** TURN ***')) { let turn = line.match(/\[(.*?)\]/)[1].split(' ').pop(); currentBoard.push(turn); steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line }); }
+        else if (line.startsWith('*** RIVER ***')) { let river = line.match(/\[(.*?)\]/)[1].split(' ').pop(); currentBoard.push(river); steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line }); }
+        else if (hero && phase !== 'header' && !line.startsWith('***') && !line.includes('shows')) steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line });
         if (line.startsWith('*** PRE-FLOP ***')) phase = 'action';
       }
-
-      const playersCircle = document.getElementById('playersCircle');
-      playersCircle.innerHTML = '';
-
-      players.forEach((p, index) => {
-        const container = document.createElement('div');
-        container.className = 'player-container';
-
-        const angle = (360 / players.length) * index - 90;
-        const radius = 160;
-        const rad = angle * (Math.PI / 180);
-        const x = radius * Math.cos(rad);
-        const y = radius * Math.sin(rad);
-
-        container.style.left = `calc(50% + ${x}px)`;
-        container.style.top = `calc(50% + ${y}px)`;
-
-        const badge = document.createElement('span');
-        badge.innerText = p.name.split(' ')[0];
-        badge.className = 'player-badge';
-        badge.style.background = p.color;
-        badge.id = `player-${index}`;
-
-        const role = document.createElement('span');
-        role.className = 'role-badge';
-        let roleText = '';
-
-        if (p.seat.includes(buttonSeat)) {
-          roleText = 'BTN';
-        } else if (p.name.startsWith(smallBlindPlayer)) {
-          roleText = 'SB';
-        } else if (p.name.startsWith(bigBlindPlayer)) {
-          roleText = 'BB';
-        }
-
-        role.innerText = roleText;
-
-        const actionBadge = document.createElement('span');
-        actionBadge.className = 'role-badge';
-        actionBadge.id = `player-action-${index}`;
-        actionBadge.innerText = '';
-
-        container.appendChild(badge);
-        if (roleText) container.appendChild(role);
-        container.appendChild(actionBadge);
-
-        playersCircle.appendChild(container);
+      const pc = document.getElementById('playersCircle'); pc.innerHTML = '';
+      players.forEach((p, i) => { let c = document.createElement('div'); c.className = 'player-container'; let a = (360 / players.length) * i - 90, r = 160, rad = a * (Math.PI / 180), x = r * Math.cos(rad), y = r * Math.sin(rad);
+        c.style.left = `calc(50% + ${x}px)`; c.style.top = `calc(50% + ${y}px)`;
+        let b = document.createElement('span'); b.innerText = p.name.split(' ')[0]; b.className = 'player-badge'; b.style.background = p.color; b.id = `player-${i}`;
+        let role = document.createElement('span'); role.className = 'role-badge'; let rt = ''; if (p.seat.includes(buttonSeat)) rt = 'BTN'; else if (p.name.startsWith(smallBlindPlayer)) rt = 'SB'; else if (p.name.startsWith(bigBlindPlayer)) rt = 'BB'; role.innerText = rt;
+        let act = document.createElement('span'); act.className = 'role-badge'; act.id = `player-action-${i}`; act.innerText = '';
+        c.appendChild(b); if (rt) c.appendChild(role); c.appendChild(act); pc.appendChild(c);
       });
-
-      document.getElementById('table').style.display = 'block';
-      showStep();
+      document.getElementById('table').style.display = 'block'; showStep();
     }
-
     function showStep() {
       if (steps.length === 0) return;
-
-      // Recompute folded players up to current step
       foldedPlayers = [];
       for (let i = 0; i <= currentStep; i++) {
-        const act = steps[i].action;
-        const acting = players.find(p => act.startsWith(p.name.split(' ')[0]));
-        if (acting) {
-          const clean = act.replace(acting.name.split(' ')[0], '').trim();
-          if (clean.includes('fold') && !foldedPlayers.includes(acting.name)) {
-            foldedPlayers.push(acting.name);
-          }
-        }
+        let act = steps[i].action, p = players.find(x => act.startsWith(x.name.split(' ')[0]));
+        if (p) { let clean = act.replace(p.name.split(' ')[0], '').trim(); if (clean.includes('fold') && !foldedPlayers.includes(p.name)) foldedPlayers.push(p.name); }
       }
-
-      // Build dynamic board
-      let visibleBoard = [];
-      for (let i = 0; i <= currentStep; i++) {
-        const act = steps[i].action;
-        if (act.startsWith('*** FLOP ***')) {
-          visibleBoard = act.match(/\[(.*?)\]/)[1].split(' ');
-        } else if (act.startsWith('*** TURN ***')) {
-          visibleBoard.push(act.match(/\[(.*?)\]/)[1].split(' ').pop());
-        } else if (act.startsWith('*** RIVER ***')) {
-          visibleBoard.push(act.match(/\[(.*?)\]/)[1].split(' ').pop());
-        }
-      }
-
-      const boardDiv = document.getElementById('board');
-      boardDiv.innerHTML = '';
-      visibleBoard.forEach(card => {
-        const img = document.createElement('img');
-        img.src = `cards/${convertCard(card)}`;
-        boardDiv.appendChild(img);
-      });
-
-      const heroDiv = document.getElementById('heroHand');
-      heroDiv.innerHTML = '';
-      steps[currentStep].heroHand.forEach(card => {
-        const img = document.createElement('img');
-        img.src = `cards/${convertCard(card)}`;
-        heroDiv.appendChild(img);
-      });
-
-      players.forEach((p, index) => {
-        const badge = document.getElementById(`player-${index}`);
-        badge.classList.remove('player-active');
-
-        const act = document.getElementById(`player-action-${index}`);
-        act.innerText = '';
-
-        if (foldedPlayers.includes(p.name)) {
-          badge.classList.add('player-folded');
-        } else {
-          badge.classList.remove('player-folded');
-        }
-      });
-
-      const actionLine = steps[currentStep].action;
-      const actingPlayer = players.find(p => actionLine.startsWith(p.name.split(' ')[0]));
-      if (actingPlayer) {
-        const index = players.findIndex(p => p.name === actingPlayer.name);
-        const badge = document.getElementById(`player-${index}`);
-        const act = document.getElementById(`player-action-${index}`);
-
-        const cleanAction = actionLine.replace(actingPlayer.name.split(' ')[0], '').trim();
-        act.innerText = cleanAction;
-
-        badge.classList.add('player-active');
-      }
-
-      document.getElementById('action').innerText = actionLine;
+      let vb = steps[currentStep].board, bd = document.getElementById('board'); bd.innerHTML = ''; vb.forEach(card => { let img = document.createElement('img'); img.src = `cards/${convertCard(card)}`; bd.appendChild(img); });
+      let hd = document.getElementById('heroHand'); hd.innerHTML = ''; steps[currentStep].heroHand.forEach(card => { let img = document.createElement('img'); img.src = `cards/${convertCard(card)}`; hd.appendChild(img); });
+      players.forEach((p, i) => { let b = document.getElementById(`player-${i}`); b.classList.remove('player-active'); let a = document.getElementById(`player-action-${i}`); a.innerText = ''; if (foldedPlayers.includes(p.name)) b.classList.add('player-folded'); else b.classList.remove('player-folded'); });
+      let actL = steps[currentStep].action, ap = players.find(p => actL.startsWith(p.name.split(' ')[0])); if (ap) { let i = players.findIndex(p => p.name === ap.name), b = document.getElementById(`player-${i}`), a = document.getElementById(`player-action-${i}`); a.innerText = actL.replace(ap.name.split(' ')[0], '').trim(); b.classList.add('player-active'); }
+      document.getElementById('action').innerText = actL;
     }
-
-    function nextStep() {
-      if (currentStep < steps.length - 1) {
-        currentStep++;
-        showStep();
-      }
-    }
-
-    function prevStep() {
-      if (currentStep > 0) {
-        currentStep--;
-        showStep();
-      }
-    }
-
-    function nextHand() {
-      if (currentHandIndex < allHands.length - 1) {
-        currentHandIndex++;
-        parseOneHand(allHands[currentHandIndex]);
-      }
-    }
-
-    function convertCard(code) {
-      const ranks = {
-        '2': '2', '3': '3', '4': '4', '5': '5', '6': '6',
-        '7': '7', '8': '8', '9': '9', 'T': '10',
-        'J': 'jack', 'Q': 'queen', 'K': 'king', 'A': 'ace'
-      };
-      const suits = {
-        'c': 'clubs',
-        'd': 'diamonds',
-        'h': 'hearts',
-        's': 'spades'
-      };
-      const rank = ranks[code[0].toUpperCase()] || 'X';
-      const suit = suits[code[1].toLowerCase()] || 'unknown';
-      return `${rank}_of_${suit}.png`;
-    }
+    function nextStep() { if (currentStep < steps.length - 1) { currentStep++; showStep(); } }
+    function prevStep() { if (currentStep > 0) { currentStep--; showStep(); } }
+    function nextHand() { if (currentHandIndex < allHands.length - 1) { currentHandIndex++; parseOneHand(allHands[currentHandIndex]); } }
+    function convertCard(code) { let r = { '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', 'T': '10', 'J': 'jack', 'Q': 'queen', 'K': 'king', 'A': 'ace' }; let s = { 'c': 'clubs', 'd': 'diamonds', 'h': 'hearts', 's': 'spades' }; return `${r[code[0].toUpperCase()] || 'X'}_of_${s[code[1].toLowerCase()] || 'unknown'}.png`; }
   </script>
 </body>
 </html>
-
 
 
 
