@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Replayer Winamax - Prototype</title>
+  <title>Replayer Winamax - Table de Poker Améliorée</title>
   <style>
     body {
       background: radial-gradient(circle at center, #005c2e 0%, #003f1f 100%);
@@ -12,13 +12,13 @@
       padding: 20px;
     }
 
-textarea {
-  width: 90%;
-  height: 40px;   /* plus fin ! */
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 14px;
-}
+    textarea {
+      width: 90%;
+      height: 80px;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 14px;
+    }
 
     #table {
       margin-top: 20px;
@@ -26,25 +26,82 @@ textarea {
       border: 2px solid #111;
       border-radius: 12px;
       padding: 20px;
-      max-width: 600px;
+      max-width: 800px;
       margin-left: auto;
       margin-right: auto;
+    }
+
+    #tableArea {
+      position: relative;
+      width: 400px;
+      height: 400px;
+      margin: 0 auto 20px auto;
+    }
+
+    #board {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    #playersCircle {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .player-container {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transform: translate(-50%, -50%);
+    }
+
+    .player-badge {
+      padding: 10px 15px;
+      border-radius: 30px;
+      background: gray;
+      color: white;
+      font-weight: bold;
+      transition: all 0.2s;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .player-active {
+      border: 3px solid #fff;
+      box-shadow: 0 0 10px #fff;
+    }
+
+    .player-folded {
+      filter: grayscale(100%);
+      opacity: 0.5;
+    }
+
+    .role-badge {
+      display: block;
+      margin-top: 5px;
+      background: #111;
+      color: #fff;
+      border-radius: 10px;
+      padding: 2px 6px;
+      font-size: 12px;
     }
 
     .cards {
       margin: 10px auto;
     }
 
-.cards img {
-  width: 60px;  /* plus grand ! */
-  height: auto;
-  margin: 3px;
-  border-radius: 4px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-}
-
-    #board {
-      margin-bottom: 20px;
+    .cards img {
+      width: 60px;
+      height: auto;
+      margin: 3px;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
     }
 
     #heroHand {
@@ -57,6 +114,8 @@ textarea {
       border-radius: 8px;
       font-size: 16px;
       font-weight: bold;
+      max-width: 600px;
+      margin: 0 auto;
     }
 
     button {
@@ -83,14 +142,14 @@ textarea {
 <body>
   <h1>Winamax Poker Replayer</h1>
 
-  <textarea id="input" placeholder="Colle ici plusieurs mains Winamax..."></textarea><br>
+  <textarea id="input" placeholder="Colle ici tes mains Winamax..."></textarea><br>
   <button onclick="parseAllHands()">Charger les mains</button>
 
   <div id="table" style="display:none;">
-    <h2 style="margin-top:0;">Replayer - Main Winamax</h2>
-
-    <h3>Board</h3>
-    <div id="board" class="cards"></div>
+    <div id="tableArea">
+      <div id="board" class="cards"></div>
+      <div id="playersCircle"></div>
+    </div>
 
     <h3>Votre Main</h3>
     <div id="heroHand" class="cards"></div>
@@ -110,10 +169,11 @@ textarea {
     let currentHandIndex = 0;
     let steps = [];
     let currentStep = 0;
+    let players = [];
+    const playerColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4'];
 
     function parseAllHands() {
       const text = document.getElementById('input').value;
-      // Découpe les mains par 'Winamax Poker'
       const rawHands = text.split(/Winamax Poker/).filter(h => h.trim() !== '');
       allHands = rawHands.map(h => 'Winamax Poker' + h);
       currentHandIndex = 0;
@@ -123,6 +183,11 @@ textarea {
     function parseOneHand(text) {
       steps = [];
       currentStep = 0;
+      players = [];
+      let buttonSeat = '';
+      let smallBlindPlayer = '';
+      let bigBlindPlayer = '';
+
       const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
 
       let hero = '';
@@ -131,10 +196,30 @@ textarea {
       let phase = 'header';
 
       for (let line of lines) {
+        if (line.startsWith('Seat ')) {
+          const parts = line.split(':');
+          const seat = parts[0];
+          const player = parts[1].trim();
+          players.push({ seat, name: player, color: playerColors[players.length] });
+        }
+
+        if (line.includes('Seat #') && line.includes('is the button')) {
+          buttonSeat = line.split(' ')[1].replace('#', '');
+        }
+
+        if (line.endsWith('posts small blind') || line.includes('posts small blind')) {
+          smallBlindPlayer = line.split(' ')[0];
+        }
+
+        if (line.endsWith('posts big blind') || line.includes('posts big blind')) {
+          bigBlindPlayer = line.split(' ')[0];
+        }
+
         if (line.startsWith('Dealt to')) {
           hero = line.split(' ')[2];
           heroHand = line.match(/\[(.*?)\]/)[1].split(' ');
         }
+
         if (line.startsWith('*** FLOP ***')) {
           const flop = line.match(/\[(.*?)\]/)[1].split(' ');
           board = flop;
@@ -145,7 +230,7 @@ textarea {
           const river = line.match(/\[(.*?)\]/)[1].split(' ').pop();
           board.push(river);
         } else if (line.startsWith('***') || line.startsWith('Dealt to') || line.includes('shows')) {
-          // ignore, handled elsewhere
+          // ignorer
         } else if (hero && phase !== 'header') {
           steps.push({
             heroHand: [...heroHand],
@@ -156,6 +241,55 @@ textarea {
 
         if (line.startsWith('*** PRE-FLOP ***')) phase = 'action';
       }
+
+      // Afficher joueurs autour de la table :
+      const playersCircle = document.getElementById('playersCircle');
+      playersCircle.innerHTML = '';
+
+      players.forEach((p, index) => {
+        const container = document.createElement('div');
+        container.className = 'player-container';
+
+        const angle = (360 / players.length) * index - 90; // Start at top
+        const radius = 160;
+        const rad = angle * (Math.PI / 180);
+        const x = radius * Math.cos(rad);
+        const y = radius * Math.sin(rad);
+
+        container.style.left = `calc(50% + ${x}px)`;
+        container.style.top = `calc(50% + ${y}px)`;
+
+        const badge = document.createElement('span');
+        badge.innerText = p.name.split(' ')[0];
+        badge.className = 'player-badge';
+        badge.style.background = p.color;
+        badge.id = `player-${index}`;
+
+        const role = document.createElement('span');
+        role.className = 'role-badge';
+        let roleText = '';
+
+        if (p.seat.includes(buttonSeat)) {
+          roleText = 'BTN';
+        } else if (p.name.startsWith(smallBlindPlayer)) {
+          roleText = 'SB';
+        } else if (p.name.startsWith(bigBlindPlayer)) {
+          roleText = 'BB';
+        }
+
+        role.innerText = roleText;
+
+        const actionBadge = document.createElement('span');
+        actionBadge.className = 'role-badge';
+        actionBadge.id = `player-action-${index}`;
+        actionBadge.innerText = '';
+
+        container.appendChild(badge);
+        if (roleText) container.appendChild(role);
+        container.appendChild(actionBadge);
+
+        playersCircle.appendChild(container);
+      });
 
       document.getElementById('table').style.display = 'block';
       showStep();
@@ -180,6 +314,31 @@ textarea {
         img.src = `cards/${convertCard(card)}`;
         heroDiv.appendChild(img);
       });
+
+      players.forEach((p, index) => {
+        const badge = document.getElementById(`player-${index}`);
+        badge.classList.remove('player-active', 'player-folded');
+
+        const act = document.getElementById(`player-action-${index}`);
+        act.innerText = '';
+      });
+
+      const actionLine = step.action;
+      const actingPlayer = players.find(p => actionLine.startsWith(p.name.split(' ')[0]));
+      if (actingPlayer) {
+        const index = players.findIndex(p => p.name === actingPlayer.name);
+        const badge = document.getElementById(`player-${index}`);
+        const act = document.getElementById(`player-action-${index}`);
+
+        const cleanAction = actionLine.replace(actingPlayer.name.split(' ')[0], '').trim();
+        act.innerText = cleanAction;
+
+        badge.classList.add('player-active');
+
+        if (cleanAction.includes('fold')) {
+          badge.classList.add('player-folded');
+        }
+      }
 
       document.getElementById('action').innerText = step.action;
     }
