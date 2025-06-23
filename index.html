@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Replayer Winamax - Pot & Multi-Mains</title>
+  <title>Replayer Winamax - Version Finale</title>
   <style>
     body {
       background: radial-gradient(circle at center, #005c2e 0%, #003f1f 100%);
@@ -13,9 +13,11 @@
     }
 
     #mainCounter {
-      position: absolute;
-      top: 20px;
-      right: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    #pot {
       font-size: 20px;
       font-weight: bold;
     }
@@ -37,6 +39,7 @@
       max-width: 800px;
       margin-left: auto;
       margin-right: auto;
+      position: relative; /* ✅ pour positionner pot & mainCounter à l'intérieur */
     }
 
     #tableArea {
@@ -51,15 +54,6 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-    }
-
-    #pot {
-      position: absolute;
-      top: calc(50% + 60px);
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 28px;
-      font-weight: bold;
     }
 
     #playersCircle {
@@ -158,15 +152,17 @@
 </head>
 <body>
   <h1>Winamax Poker Replayer</h1>
-  <div id="mainCounter"></div>
 
   <textarea id="input" placeholder="Colle ici tes mains Winamax..."></textarea><br>
   <button onclick="parseAllHands()">Charger les mains</button>
 
   <div id="table" style="display:none;">
+    <!-- ✅ Pot et MainCounter INSIDE le cadre noir -->
+    <div id="pot" style="position: absolute; top: 10px; left: 20px;"></div>
+    <div id="mainCounter" style="position: absolute; top: 10px; right: 20px;"></div>
+
     <div id="tableArea">
       <div id="board" class="cards"></div>
-      <div id="pot"></div>
       <div id="playersCircle"></div>
     </div>
 
@@ -187,14 +183,15 @@
   <script>
     let allHands = [], currentHandIndex = 0, steps = [], currentStep = 0, players = [], foldedPlayers = [];
     const playerColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4'];
-    
-function formatPot(amount) {
-  if (amount >= 1000) {
-    return (amount / 1000).toFixed(1).replace('.', ',') + 'k';
-  } else {
-    return amount.toString();
-  }
-}
+
+    function formatPot(amount) {
+      if (amount >= 1000) {
+        return (amount / 1000).toFixed(1).replace('.', ',') + 'k';
+      } else {
+        return amount.toString();
+      }
+    }
+
     function parseAllHands() {
       const text = document.getElementById('input').value;
       const rawHands = text.split(/Winamax Poker/).filter(h => h.trim() !== '');
@@ -224,7 +221,8 @@ function formatPot(amount) {
       const pc = document.getElementById('playersCircle'); pc.innerHTML = '';
       players.forEach((p, i) => {
         let c = document.createElement('div'); c.className = 'player-container';
-        let a = (360 / players.length) * i - 90, r = 160, rad = a * (Math.PI / 180), x = r * Math.cos(rad), y = r * Math.sin(rad);
+        let a = (360 / players.length) * i - 90, radius = 200;
+        let rad = a * (Math.PI / 180), x = radius * Math.cos(rad), y = radius * Math.sin(rad);
         c.style.left = `calc(50% + ${x}px)`; c.style.top = `calc(50% + ${y}px)`;
         let b = document.createElement('span'); b.innerText = p.name.split(' ')[0]; b.className = 'player-badge'; b.style.background = p.color; b.id = `player-${i}`;
         let role = document.createElement('span'); role.className = 'role-badge'; let rt = ''; if (p.seat.includes(buttonSeat)) rt = 'BTN'; else if (p.name.startsWith(smallBlindPlayer)) rt = 'SB'; else if (p.name.startsWith(bigBlindPlayer)) rt = 'BB'; role.innerText = rt;
@@ -258,7 +256,7 @@ function formatPot(amount) {
           potAmount += parseInt(numbers[numbers.length - 1]);
         }
       }
-      document.getElementById('pot').innerText = `💰 Pot: ${formatPot(potAmount)}`;
+      document.getElementById('pot').innerText = `🪙 Pot: ${formatPot(potAmount)}`;
 
       players.forEach((p, i) => {
         let b = document.getElementById(`player-${i}`);
@@ -288,7 +286,6 @@ function formatPot(amount) {
       const r = { '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', 'T': '10', 'J': 'jack', 'Q': 'queen', 'K': 'king', 'A': 'ace' };
       const s = { 'c': 'clubs', 'd': 'diamonds', 'h': 'hearts', 's': 'spades' };
       return `${r[code[0].toUpperCase()] || 'X'}_of_${s[code[1].toLowerCase()] || 'unknown'}.png`;
-
     }
   </script>
 </body>
