@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Replayer Winamax - Table Ovale + Flèches</title>
+  <title>Winamax Replayer - PRO FINAL</title>
   <style>
     body {
       background: radial-gradient(circle at center, #005c2e 0%, #003f1f 100%);
@@ -34,10 +34,10 @@
       margin-top: 20px;
       background: #004927;
       border: 2px solid #111;
-      border-radius: 50% / 30%; /* ✅ Forme ovale ! */
+      border-radius: 50% / 30%;
       padding: 20px;
-      max-width: 1000px; /* ✅ Plus large */
-      height: 500px; /* ✅ Plus haut */
+      max-width: 1000px;
+      height: 500px;
       margin-left: auto;
       margin-right: auto;
       position: relative;
@@ -55,6 +55,13 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
+    }
+
+    #pot {
+      position: absolute;
+      top: calc(50% + 80px);
+      left: 50%;
+      transform: translateX(-50%);
     }
 
     #playersCircle {
@@ -84,6 +91,20 @@
       text-align: center;
     }
 
+    .player-hand {
+      margin-top: 5px;
+    }
+
+    .player-hand img {
+      width: 30px;
+      height: auto;
+      margin: 0 2px;
+      border-radius: 4px;
+      background: white;
+      padding: 2px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+
     .player-active {
       border: 3px solid #fff;
       box-shadow: 0 0 10px #fff;
@@ -96,7 +117,7 @@
 
     .role-badge {
       display: block;
-      margin-top: 5px;
+      margin: 3px 0;
       background: #111;
       color: #fff;
       border-radius: 10px;
@@ -113,6 +134,8 @@
       height: auto;
       margin: 3px;
       border-radius: 4px;
+      background: white;
+      padding: 2px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.5);
     }
 
@@ -147,11 +170,11 @@
     }
 
     .arrow-left {
-      left: 10px;
+      left: -70px;
     }
 
     .arrow-right {
-      right: 10px;
+      right: -70px;
     }
 
     button {
@@ -176,22 +199,19 @@
   </style>
 </head>
 <body>
-  <h1>Winamax Poker Replayer</h1>
+  <h1>Winamax Poker Replayer PRO</h1>
 
   <textarea id="input" placeholder="Colle ici tes mains Winamax..."></textarea><br>
-  <button onclick="parseAllHands()">Charger les mains</button>
+  <button onclick="parseAllHands()" id="loadButton">Charger les mains</button>
 
   <div id="table" style="display:none;">
-    <!-- Pot & Main Counter dans le cadre -->
-    <div id="pot" style="position: absolute; top: 10px; left: 20px;"></div>
     <div id="mainCounter" style="position: absolute; top: 10px; right: 20px;"></div>
-
-    <!-- Flèches gauche/droite pour changer de main -->
-    <div class="arrow arrow-left" onclick="prevHand()">⏪</div>
-    <div class="arrow arrow-right" onclick="nextHand()">⏩</div>
+    <div class="arrow arrow-left" onclick="prevStep()">⏪</div>
+    <div class="arrow arrow-right" onclick="nextStep()">⏩</div>
 
     <div id="tableArea">
       <div id="board" class="cards"></div>
+      <div id="pot"></div>
       <div id="playersCircle"></div>
     </div>
 
@@ -202,13 +222,13 @@
     <div id="action"></div>
 
     <div style="margin-top:20px;">
-      <button onclick="prevStep()">⏮️ Précédent</button>
-      <button onclick="nextStep()">⏭️ Suivant</button>
+      <button onclick="prevHand()">⏮️ Main Précédente</button>
+      <button onclick="nextHand()">⏭️ Main Suivante</button>
     </div>
   </div>
 
   <script>
-    let allHands = [], currentHandIndex = 0, steps = [], currentStep = 0, players = [], foldedPlayers = [];
+    let allHands = [], currentHandIndex = 0, steps = [], currentStep = 0, players = [], foldedPlayers = [], hero = '', heroHand = [];
     const playerColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4'];
 
     function formatPot(amount) {
@@ -225,15 +245,26 @@
       allHands = rawHands.map(h => 'Winamax Poker' + h);
       currentHandIndex = 0;
       parseOneHand(allHands[currentHandIndex]);
+
+      // Cache input et bouton
+      document.getElementById('input').style.display = 'none';
+      document.getElementById('loadButton').style.display = 'none';
     }
 
     function parseOneHand(text) {
       steps = []; currentStep = 0; players = []; foldedPlayers = [];
-
-      let buttonSeat = '', smallBlindPlayer = '', bigBlindPlayer = '', lines = text.split('\n').map(l => l.trim()).filter(l => l !== ''), hero = '', heroHand = [], currentBoard = [], phase = 'header';
+      let buttonSeat = '', smallBlindPlayer = '', bigBlindPlayer = '', lines = text.split('\n').map(l => l.trim()).filter(l => l !== ''), currentBoard = [], phase = 'header';
 
       for (let line of lines) {
-        if (line.startsWith('Seat ')) { let parts = line.split(':'); players.push({ seat: parts[0], name: parts[1].trim(), color: playerColors[players.length] }); }
+        if (line.startsWith('Seat ')) {
+          let parts = line.split(':');
+          let name = parts[1].split('(')[0].trim();
+          let stackMatch = parts[1].match(/\((\d+)\)/);
+          let stack = stackMatch ? stackMatch[1] : '';
+          if (!players.find(p => p.name === name)) {
+            players.push({ seat: parts[0], name: name, stack: stack, color: playerColors[players.length] });
+          }
+        }
         if (line.includes('Seat #') && line.includes('is the button')) buttonSeat = line.split(' ')[1].replace('#', '');
         if (line.includes('posts small blind')) smallBlindPlayer = line.split(' ')[0];
         if (line.includes('posts big blind')) bigBlindPlayer = line.split(' ')[0];
@@ -241,20 +272,34 @@
         if (line.startsWith('*** FLOP ***')) { currentBoard = line.match(/\[(.*?)\]/)[1].split(' '); steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line }); }
         else if (line.startsWith('*** TURN ***')) { let turn = line.match(/\[(.*?)\]/)[1].split(' ').pop(); currentBoard.push(turn); steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line }); }
         else if (line.startsWith('*** RIVER ***')) { let river = line.match(/\[(.*?)\]/)[1].split(' ').pop(); currentBoard.push(river); steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line }); }
-        else if (hero && phase !== 'header' && !line.startsWith('***') && !line.includes('shows')) steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line });
+        else if (hero && phase !== 'header' && !line.startsWith('***')) steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line });
         if (line.startsWith('*** PRE-FLOP ***')) phase = 'action';
       }
 
       const pc = document.getElementById('playersCircle'); pc.innerHTML = '';
       players.forEach((p, i) => {
         let c = document.createElement('div'); c.className = 'player-container';
-        let a = (360 / players.length) * i - 90, radius = 300; // ✅ Rayon + grand pour table ovale
-        let rad = a * (Math.PI / 180), x = radius * Math.cos(rad), y = radius * Math.sin(rad) * 0.6; // ✅ Y compressé pour ovale
+        let a = (360 / players.length) * i - 90, radius = 300;
+        let rad = a * (Math.PI / 180), x = radius * Math.cos(rad), y = radius * Math.sin(rad) * 0.6;
         c.style.left = `calc(50% + ${x}px)`; c.style.top = `calc(50% + ${y}px)`;
+
+        let stack = document.createElement('span'); stack.className = 'role-badge'; stack.innerText = p.stack;
         let b = document.createElement('span'); b.innerText = p.name.split(' ')[0]; b.className = 'player-badge'; b.style.background = p.color; b.id = `player-${i}`;
-        let role = document.createElement('span'); role.className = 'role-badge'; let rt = ''; if (p.seat.includes(buttonSeat)) rt = 'BTN'; else if (p.name.startsWith(smallBlindPlayer)) rt = 'SB'; else if (p.name.startsWith(bigBlindPlayer)) rt = 'BB'; role.innerText = rt;
-        let act = document.createElement('span'); act.className = 'role-badge'; act.id = `player-action-${i}`; act.innerText = '';
-        c.appendChild(b); if (rt) c.appendChild(role); c.appendChild(act); pc.appendChild(c);
+        let role = document.createElement('span'); role.className = 'role-badge';
+        let rt = ''; if (p.seat.includes(buttonSeat)) rt = 'BTN'; else if (p.name.startsWith(smallBlindPlayer)) rt = 'SB'; else if (p.name.startsWith(bigBlindPlayer)) rt = 'BB';
+        role.innerText = rt;
+
+        let handDiv = document.createElement('div'); handDiv.className = 'player-hand'; handDiv.id = `player-hand-${i}`;
+
+        c.appendChild(stack);
+        c.appendChild(b); if (rt) c.appendChild(role); c.appendChild(handDiv); pc.appendChild(c);
+
+        handDiv.innerHTML = `<img src="cards/back.png"><img src="cards/back.png">`;
+        if (p.name.startsWith(hero)) {
+          handDiv.innerHTML = ''; heroHand.forEach(card => {
+            let img = document.createElement('img'); img.src = `cards/${convertCard(card)}`; handDiv.appendChild(img);
+          });
+        }
       });
 
       document.getElementById('mainCounter').innerText = `Main ${currentHandIndex + 1} / ${allHands.length}`;
@@ -265,9 +310,26 @@
     function showStep() {
       if (steps.length === 0) return;
       foldedPlayers = [];
+      let lastRaises = {};
       for (let i = 0; i <= currentStep; i++) {
         let act = steps[i].action, p = players.find(x => act.startsWith(x.name.split(' ')[0]));
-        if (p) { let clean = act.replace(p.name.split(' ')[0], '').trim(); if (clean.includes('fold') && !foldedPlayers.includes(p.name)) foldedPlayers.push(p.name); }
+        if (p) {
+          let clean = act.replace(p.name.split(' ')[0], '').trim();
+          if (clean.includes('fold') && !foldedPlayers.includes(p.name)) foldedPlayers.push(p.name);
+          if (clean.includes('shows')) {
+            let match = act.match(/\[(.*?)\]/);
+            if (match) {
+              let cards = match[1].split(' ');
+              let handDiv = document.getElementById(`player-hand-${players.indexOf(p)}`);
+              handDiv.innerHTML = '';
+              cards.forEach(card => {
+                let img = document.createElement('img');
+                img.src = `cards/${convertCard(card)}`;
+                handDiv.appendChild(img);
+              });
+            }
+          }
+        }
       }
 
       const vb = steps[currentStep].board, bd = document.getElementById('board'); bd.innerHTML = '';
@@ -276,11 +338,23 @@
       const hd = document.getElementById('heroHand'); hd.innerHTML = '';
       steps[currentStep].heroHand.forEach(card => { let img = document.createElement('img'); img.src = `cards/${convertCard(card)}`; hd.appendChild(img); });
 
-      let potAmount = 0;
+      let potAmount = 0; lastRaises = {};
       for (let i = 0; i <= currentStep; i++) {
-        let act = steps[i].action.toLowerCase(), numbers = act.match(/\d+/g);
-        if (numbers && (act.includes('posts') || act.includes('raises') || act.includes('calls') || act.includes('bets'))) {
-          potAmount += parseInt(numbers[numbers.length - 1]);
+        let act = steps[i].action.toLowerCase();
+        let who = act.split(' ')[0];
+        let nums = act.match(/\d+/g);
+        if (nums) {
+          let num = parseInt(nums[nums.length - 1]);
+          if (act.includes('posts') || act.includes('bets')) {
+            potAmount += num;
+          } else if (act.includes('raises')) {
+            if (lastRaises[who]) {
+              potAmount += (num - lastRaises[who]);
+            } else {
+              potAmount += num;
+            }
+            lastRaises[who] = num;
+          }
         }
       }
       document.getElementById('pot').innerText = `🪙 Pot: ${formatPot(potAmount)}`;
@@ -288,17 +362,14 @@
       players.forEach((p, i) => {
         let b = document.getElementById(`player-${i}`);
         b.classList.remove('player-active');
-        let a = document.getElementById(`player-action-${i}`);
-        a.innerText = '';
-        if (foldedPlayers.includes(p.name)) b.classList.add('player-folded'); else b.classList.remove('player-folded');
+        if (foldedPlayers.includes(p.name)) b.classList.add('player-folded');
+        else b.classList.remove('player-folded');
       });
 
       const actionLine = steps[currentStep].action, ap = players.find(p => actionLine.startsWith(p.name.split(' ')[0]));
       if (ap) {
-        let i = players.findIndex(p => p.name === ap.name),
-          b = document.getElementById(`player-${i}`),
-          a = document.getElementById(`player-action-${i}`);
-        a.innerText = actionLine.replace(ap.name.split(' ')[0], '').trim();
+        let i = players.findIndex(p => p.name === ap.name);
+        let b = document.getElementById(`player-${i}`);
         b.classList.add('player-active');
       }
       document.getElementById('action').innerText = actionLine;
@@ -317,6 +388,7 @@
   </script>
 </body>
 </html>
+
 
 
 
