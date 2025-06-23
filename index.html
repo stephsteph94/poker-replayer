@@ -281,6 +281,15 @@
       const r = { '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', 'T': '10', 'J': 'jack', 'Q': 'queen', 'K': 'king', 'A': 'ace' };
       const s = { 'c': 'clubs', 'd': 'diamonds', 'h': 'hearts', 's': 'spades' };
       return `${r[code[0].toUpperCase()] || 'X'}_of_${s[code[1].toLowerCase()] || 'unknown'}.png`;
+
+      function formatPot(amount) {
+  if (amount >= 1000) {
+    return (amount / 1000).toFixed(1).replace('.', ',') + 'k';
+  } else {
+    return amount.toString();
+  }
+}
+
     }
   </script>
 </body>
