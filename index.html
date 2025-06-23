@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Replayer Winamax - Version Finale</title>
+  <title>Replayer Winamax - Pot & Multi-Mains</title>
   <style>
     body {
       background: radial-gradient(circle at center, #005c2e 0%, #003f1f 100%);
@@ -53,19 +53,21 @@
       transform: translate(-50%, -50%);
     }
 
+    #pot {
+      position: absolute;
+      top: calc(50% + 60px);
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 28px;
+      font-weight: bold;
+    }
+
     #playersCircle {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-    }
-
-    #pot {
-      position: static;
-      margin-top: 20px;
-      font-size: 28px;
-      font-weight: bold;
     }
 
     .player-container {
@@ -164,9 +166,9 @@
   <div id="table" style="display:none;">
     <div id="tableArea">
       <div id="board" class="cards"></div>
+      <div id="pot"></div>
       <div id="playersCircle"></div>
     </div>
-    <div id="pot"></div>
 
     <h3>Votre Main</h3>
     <div id="heroHand" class="cards"></div>
@@ -196,6 +198,7 @@
 
     function parseOneHand(text) {
       steps = []; currentStep = 0; players = []; foldedPlayers = [];
+
       let buttonSeat = '', smallBlindPlayer = '', bigBlindPlayer = '', lines = text.split('\n').map(l => l.trim()).filter(l => l !== ''), hero = '', heroHand = [], currentBoard = [], phase = 'header';
 
       for (let line of lines) {
@@ -214,8 +217,7 @@
       const pc = document.getElementById('playersCircle'); pc.innerHTML = '';
       players.forEach((p, i) => {
         let c = document.createElement('div'); c.className = 'player-container';
-        let a = (360 / players.length) * i - 90, radius = 220; // ✅ plus grand rayon !
-        let rad = a * (Math.PI / 180), x = radius * Math.cos(rad), y = radius * Math.sin(rad);
+        let a = (360 / players.length) * i - 90, r = 160, rad = a * (Math.PI / 180), x = r * Math.cos(rad), y = r * Math.sin(rad);
         c.style.left = `calc(50% + ${x}px)`; c.style.top = `calc(50% + ${y}px)`;
         let b = document.createElement('span'); b.innerText = p.name.split(' ')[0]; b.className = 'player-badge'; b.style.background = p.color; b.id = `player-${i}`;
         let role = document.createElement('span'); role.className = 'role-badge'; let rt = ''; if (p.seat.includes(buttonSeat)) rt = 'BTN'; else if (p.name.startsWith(smallBlindPlayer)) rt = 'SB'; else if (p.name.startsWith(bigBlindPlayer)) rt = 'BB'; role.innerText = rt;
@@ -249,7 +251,7 @@
           potAmount += parseInt(numbers[numbers.length - 1]);
         }
       }
-      document.getElementById('pot').innerText = `🪙 Pot: ${potAmount}`;
+      document.getElementById('pot').innerText = `💰 Pot: ${potAmount}`;
 
       players.forEach((p, i) => {
         let b = document.getElementById(`player-${i}`);
@@ -283,5 +285,6 @@
   </script>
 </body>
 </html>
+
 
 
