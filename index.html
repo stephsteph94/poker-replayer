@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Replayer Winamax - Pot Fixé</title>
+  <title>Replayer Winamax - Version Finale</title>
   <style>
     body {
       background: radial-gradient(circle at center, #005c2e 0%, #003f1f 100%);
@@ -53,21 +53,19 @@
       transform: translate(-50%, -50%);
     }
 
-    #pot {
-      position: absolute;
-      bottom: 10px;   /* ✅ Toujours en bas */
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 28px;
-      font-weight: bold;
-    }
-
     #playersCircle {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
+    }
+
+    #pot {
+      position: static;
+      margin-top: 20px;
+      font-size: 28px;
+      font-weight: bold;
     }
 
     .player-container {
@@ -166,9 +164,9 @@
   <div id="table" style="display:none;">
     <div id="tableArea">
       <div id="board" class="cards"></div>
-      <div id="pot"></div>
       <div id="playersCircle"></div>
     </div>
+    <div id="pot"></div>
 
     <h3>Votre Main</h3>
     <div id="heroHand" class="cards"></div>
@@ -186,7 +184,104 @@
 
   <script>
     let allHands = [], currentHandIndex = 0, steps = [], currentStep = 0, players = [], foldedPlayers = [];
-    const playerColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#]()
+    const playerColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4'];
 
+    function parseAllHands() {
+      const text = document.getElementById('input').value;
+      const rawHands = text.split(/Winamax Poker/).filter(h => h.trim() !== '');
+      allHands = rawHands.map(h => 'Winamax Poker' + h);
+      currentHandIndex = 0;
+      parseOneHand(allHands[currentHandIndex]);
+    }
+
+    function parseOneHand(text) {
+      steps = []; currentStep = 0; players = []; foldedPlayers = [];
+      let buttonSeat = '', smallBlindPlayer = '', bigBlindPlayer = '', lines = text.split('\n').map(l => l.trim()).filter(l => l !== ''), hero = '', heroHand = [], currentBoard = [], phase = 'header';
+
+      for (let line of lines) {
+        if (line.startsWith('Seat ')) { let parts = line.split(':'); players.push({ seat: parts[0], name: parts[1].trim(), color: playerColors[players.length] }); }
+        if (line.includes('Seat #') && line.includes('is the button')) buttonSeat = line.split(' ')[1].replace('#', '');
+        if (line.includes('posts small blind')) smallBlindPlayer = line.split(' ')[0];
+        if (line.includes('posts big blind')) bigBlindPlayer = line.split(' ')[0];
+        if (line.startsWith('Dealt to')) { hero = line.split(' ')[2]; heroHand = line.match(/\[(.*?)\]/)[1].split(' '); }
+        if (line.startsWith('*** FLOP ***')) { currentBoard = line.match(/\[(.*?)\]/)[1].split(' '); steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line }); }
+        else if (line.startsWith('*** TURN ***')) { let turn = line.match(/\[(.*?)\]/)[1].split(' ').pop(); currentBoard.push(turn); steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line }); }
+        else if (line.startsWith('*** RIVER ***')) { let river = line.match(/\[(.*?)\]/)[1].split(' ').pop(); currentBoard.push(river); steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line }); }
+        else if (hero && phase !== 'header' && !line.startsWith('***') && !line.includes('shows')) steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line });
+        if (line.startsWith('*** PRE-FLOP ***')) phase = 'action';
+      }
+
+      const pc = document.getElementById('playersCircle'); pc.innerHTML = '';
+      players.forEach((p, i) => {
+        let c = document.createElement('div'); c.className = 'player-container';
+        let a = (360 / players.length) * i - 90, radius = 220; // ✅ plus grand rayon !
+        let rad = a * (Math.PI / 180), x = radius * Math.cos(rad), y = radius * Math.sin(rad);
+        c.style.left = `calc(50% + ${x}px)`; c.style.top = `calc(50% + ${y}px)`;
+        let b = document.createElement('span'); b.innerText = p.name.split(' ')[0]; b.className = 'player-badge'; b.style.background = p.color; b.id = `player-${i}`;
+        let role = document.createElement('span'); role.className = 'role-badge'; let rt = ''; if (p.seat.includes(buttonSeat)) rt = 'BTN'; else if (p.name.startsWith(smallBlindPlayer)) rt = 'SB'; else if (p.name.startsWith(bigBlindPlayer)) rt = 'BB'; role.innerText = rt;
+        let act = document.createElement('span'); act.className = 'role-badge'; act.id = `player-action-${i}`; act.innerText = '';
+        c.appendChild(b); if (rt) c.appendChild(role); c.appendChild(act); pc.appendChild(c);
+      });
+
+      document.getElementById('mainCounter').innerText = `Main ${currentHandIndex + 1} / ${allHands.length}`;
+      document.getElementById('table').style.display = 'block';
+      showStep();
+    }
+
+    function showStep() {
+      if (steps.length === 0) return;
+      foldedPlayers = [];
+      for (let i = 0; i <= currentStep; i++) {
+        let act = steps[i].action, p = players.find(x => act.startsWith(x.name.split(' ')[0]));
+        if (p) { let clean = act.replace(p.name.split(' ')[0], '').trim(); if (clean.includes('fold') && !foldedPlayers.includes(p.name)) foldedPlayers.push(p.name); }
+      }
+
+      const vb = steps[currentStep].board, bd = document.getElementById('board'); bd.innerHTML = '';
+      vb.forEach(card => { let img = document.createElement('img'); img.src = `cards/${convertCard(card)}`; bd.appendChild(img); });
+
+      const hd = document.getElementById('heroHand'); hd.innerHTML = '';
+      steps[currentStep].heroHand.forEach(card => { let img = document.createElement('img'); img.src = `cards/${convertCard(card)}`; hd.appendChild(img); });
+
+      let potAmount = 0;
+      for (let i = 0; i <= currentStep; i++) {
+        let act = steps[i].action.toLowerCase(), numbers = act.match(/\d+/g);
+        if (numbers && (act.includes('posts') || act.includes('raises') || act.includes('calls') || act.includes('bets'))) {
+          potAmount += parseInt(numbers[numbers.length - 1]);
+        }
+      }
+      document.getElementById('pot').innerText = `🪙 Pot: ${potAmount}`;
+
+      players.forEach((p, i) => {
+        let b = document.getElementById(`player-${i}`);
+        b.classList.remove('player-active');
+        let a = document.getElementById(`player-action-${i}`);
+        a.innerText = '';
+        if (foldedPlayers.includes(p.name)) b.classList.add('player-folded'); else b.classList.remove('player-folded');
+      });
+
+      const actionLine = steps[currentStep].action, ap = players.find(p => actionLine.startsWith(p.name.split(' ')[0]));
+      if (ap) {
+        let i = players.findIndex(p => p.name === ap.name),
+          b = document.getElementById(`player-${i}`),
+          a = document.getElementById(`player-action-${i}`);
+        a.innerText = actionLine.replace(ap.name.split(' ')[0], '').trim();
+        b.classList.add('player-active');
+      }
+      document.getElementById('action').innerText = actionLine;
+    }
+
+    function nextStep() { if (currentStep < steps.length - 1) { currentStep++; showStep(); } }
+    function prevStep() { if (currentStep > 0) { currentStep--; showStep(); } }
+    function nextHand() { if (currentHandIndex < allHands.length - 1) { currentHandIndex++; parseOneHand(allHands[currentHandIndex]); } }
+    function prevHand() { if (currentHandIndex > 0) { currentHandIndex--; parseOneHand(allHands[currentHandIndex]); } }
+
+    function convertCard(code) {
+      const r = { '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', 'T': '10', 'J': 'jack', 'Q': 'queen', 'K': 'king', 'A': 'ace' };
+      const s = { 'c': 'clubs', 'd': 'diamonds', 'h': 'hearts', 's': 'spades' };
+      return `${r[code[0].toUpperCase()] || 'X'}_of_${s[code[1].toLowerCase()] || 'unknown'}.png`;
+    }
+  </script>
+</body>
+</html>
 
 
