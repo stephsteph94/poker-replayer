@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Replayer Winamax - Prototype</title>
+  <style>
+    body {
+      background: radial-gradient(circle at center, #005c2e 0%, #003f1f 100%);
+      color: #fff;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    textarea {
+      width: 90%;
+      height: 200px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    #table {
+      margin-top: 20px;
+      background: #004927;
+      border: 2px solid #111;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cards {
+      margin: 10px auto;
+    }
+
+.cards img {
+  width: 60px;  /* plus grand ! */
+  height: auto;
+  margin: 3px;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+    #board {
+      margin-bottom: 20px;
+    }
+
+    #heroHand {
+      margin-bottom: 20px;
+    }
+
+    #action {
+      background: rgba(0,0,0,0.5);
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    button {
+      background: #222;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #444;
+    }
+
+    h1 {
+      font-weight: normal;
+    }
+  </style>
+</head>
+<body>
+  <h1>Winamax Poker Replayer</h1>
+
+  <textarea id="input" placeholder="Colle ici plusieurs mains Winamax..."></textarea><br>
+  <button onclick="parseAllHands()">Charger les mains</button>
+
+  <div id="table" style="display:none;">
+    <h2 style="margin-top:0;">Replayer - Main Winamax</h2>
+
+    <h3>Board</h3>
+    <div id="board" class="cards"></div>
+
+    <h3>Votre Main</h3>
+    <div id="heroHand" class="cards"></div>
+
+    <h3>Action</h3>
+    <div id="action"></div>
+
+    <div style="margin-top:20px;">
+      <button onclick="prevStep()">⏮️ Précédent</button>
+      <button onclick="nextStep()">⏭️ Suivant</button>
+      <button onclick="nextHand()">⏭️ Main Suivante</button>
+    </div>
+  </div>
+
+  <script>
+    let allHands = [];
+    let currentHandIndex = 0;
+    let steps = [];
+    let currentStep = 0;
+
+    function parseAllHands() {
+      const text = document.getElementById('input').value;
+      // Découpe les mains par 'Winamax Poker'
+      const rawHands = text.split(/Winamax Poker/).filter(h => h.trim() !== '');
+      allHands = rawHands.map(h => 'Winamax Poker' + h);
+      currentHandIndex = 0;
+      parseOneHand(allHands[currentHandIndex]);
+    }
+
+    function parseOneHand(text) {
+      steps = [];
+      currentStep = 0;
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
+
+      let hero = '';
+      let heroHand = [];
+      let board = [];
+      let phase = 'header';
+
+      for (let line of lines) {
+        if (line.startsWith('Dealt to')) {
+          hero = line.split(' ')[2];
+          heroHand = line.match(/\[(.*?)\]/)[1].split(' ');
+        }
+        if (line.startsWith('*** FLOP ***')) {
+          const flop = line.match(/\[(.*?)\]/)[1].split(' ');
+          board = flop;
+        } else if (line.startsWith('*** TURN ***')) {
+          const turn = line.match(/\[(.*?)\]/)[1].split(' ').pop();
+          board.push(turn);
+        } else if (line.startsWith('*** RIVER ***')) {
+          const river = line.match(/\[(.*?)\]/)[1].split(' ').pop();
+          board.push(river);
+        } else if (line.startsWith('***') || line.startsWith('Dealt to') || line.includes('shows')) {
+          // ignore, handled elsewhere
+        } else if (hero && phase !== 'header') {
+          steps.push({
+            heroHand: [...heroHand],
+            board: [...board],
+            action: line
+          });
+        }
+
+        if (line.startsWith('*** PRE-FLOP ***')) phase = 'action';
+      }
+
+      document.getElementById('table').style.display = 'block';
+      showStep();
+    }
+
+    function showStep() {
+      if (steps.length === 0) return;
+
+      const step = steps[currentStep];
+      const boardDiv = document.getElementById('board');
+      boardDiv.innerHTML = '';
+      step.board.forEach(card => {
+        const img = document.createElement('img');
+        img.src = `cards/${convertCard(card)}`;
+        boardDiv.appendChild(img);
+      });
+
+      const heroDiv = document.getElementById('heroHand');
+      heroDiv.innerHTML = '';
+      step.heroHand.forEach(card => {
+        const img = document.createElement('img');
+        img.src = `cards/${convertCard(card)}`;
+        heroDiv.appendChild(img);
+      });
+
+      document.getElementById('action').innerText = step.action;
+    }
+
+    function nextStep() {
+      if (currentStep < steps.length - 1) {
+        currentStep++;
+        showStep();
+      }
+    }
+
+    function prevStep() {
+      if (currentStep > 0) {
+        currentStep--;
+        showStep();
+      }
+    }
+
+    function nextHand() {
+      if (currentHandIndex < allHands.length - 1) {
+        currentHandIndex++;
+        parseOneHand(allHands[currentHandIndex]);
+      }
+    }
+
+    function convertCard(code) {
+      const ranks = {
+        '2': '2', '3': '3', '4': '4', '5': '5', '6': '6',
+        '7': '7', '8': '8', '9': '9', 'T': '10',
+        'J': 'jack', 'Q': 'queen', 'K': 'king', 'A': 'ace'
+      };
+      const suits = {
+        'c': 'clubs',
+        'd': 'diamonds',
+        'h': 'hearts',
+        's': 'spades'
+      };
+      const rank = ranks[code[0].toUpperCase()] || 'X';
+      const suit = suits[code[1].toLowerCase()] || 'unknown';
+      return `${rank}_of_${suit}.png`;
+    }
+  </script>
+</body>
+</html>
+
+
