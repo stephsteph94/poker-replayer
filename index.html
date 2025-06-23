@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Replayer Winamax - Table de Poker Améliorée</title>
+  <title>Replayer Winamax - Fold Intelligents</title>
   <style>
     body {
       background: radial-gradient(circle at center, #005c2e 0%, #003f1f 100%);
@@ -170,6 +170,7 @@
     let steps = [];
     let currentStep = 0;
     let players = [];
+    let foldedPlayers = [];
     const playerColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4'];
 
     function parseAllHands() {
@@ -184,6 +185,8 @@
       steps = [];
       currentStep = 0;
       players = [];
+      foldedPlayers = [];
+
       let buttonSeat = '';
       let smallBlindPlayer = '';
       let bigBlindPlayer = '';
@@ -242,7 +245,6 @@
         if (line.startsWith('*** PRE-FLOP ***')) phase = 'action';
       }
 
-      // Afficher joueurs autour de la table :
       const playersCircle = document.getElementById('playersCircle');
       playersCircle.innerHTML = '';
 
@@ -250,7 +252,7 @@
         const container = document.createElement('div');
         container.className = 'player-container';
 
-        const angle = (360 / players.length) * index - 90; // Start at top
+        const angle = (360 / players.length) * index - 90;
         const radius = 160;
         const rad = angle * (Math.PI / 180);
         const x = radius * Math.cos(rad);
@@ -298,6 +300,19 @@
     function showStep() {
       if (steps.length === 0) return;
 
+      // Recompute folded players from step 0 to currentStep:
+      foldedPlayers = [];
+      for (let i = 0; i <= currentStep; i++) {
+        const actionLine = steps[i].action;
+        const acting = players.find(p => actionLine.startsWith(p.name.split(' ')[0]));
+        if (acting) {
+          const clean = actionLine.replace(acting.name.split(' ')[0], '').trim();
+          if (clean.includes('fold') && !foldedPlayers.includes(acting.name)) {
+            foldedPlayers.push(acting.name);
+          }
+        }
+      }
+
       const step = steps[currentStep];
       const boardDiv = document.getElementById('board');
       boardDiv.innerHTML = '';
@@ -317,10 +332,16 @@
 
       players.forEach((p, index) => {
         const badge = document.getElementById(`player-${index}`);
-        badge.classList.remove('player-active', 'player-folded');
+        badge.classList.remove('player-active');
 
         const act = document.getElementById(`player-action-${index}`);
         act.innerText = '';
+
+        if (foldedPlayers.includes(p.name)) {
+          badge.classList.add('player-folded');
+        } else {
+          badge.classList.remove('player-folded');
+        }
       });
 
       const actionLine = step.action;
@@ -334,10 +355,6 @@
         act.innerText = cleanAction;
 
         badge.classList.add('player-active');
-
-        if (cleanAction.includes('fold')) {
-          badge.classList.add('player-folded');
-        }
       }
 
       document.getElementById('action').innerText = step.action;
