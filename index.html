@@ -2,16 +2,16 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Winamax Replayer - PRO FINAL</title>
+  <title>Winamax Replayer - COULEUR FINALE</title>
   <style>
-    
-body {
-  background: radial-gradient(circle at center, #005c2e 0%, #003f1f 100%);
-  color: #fff;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  text-align: center;
-  padding: 10px;   /* Réduit le padding global */
-}
+    body {
+      background: #001f3f; /* 🔵 Bleu foncé */
+      color: #fff;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      text-align: center;
+      padding: 10px;
+    }
+
     #mainCounter {
       font-size: 20px;
       font-weight: bold;
@@ -29,24 +29,24 @@ body {
       padding: 10px;
       font-size: 14px;
     }
-    
-#table {
-  margin-top: 0;    /* Avant : 20px —> maintenant 0 pour remonter */
-  background: #004927;
-  border: 2px solid #111;
-  border-radius: 50% / 30%;
-  padding: 20px;
-  max-width: 1000px;
-  height: 500px;
-  margin-left: auto;
-  margin-right: auto;
-  position: relative;
-}
+
+    #table {
+      margin-top: 0;
+      background: #007f3f; /* 🟢 Vert tapis de poker */
+      border: 2px solid #111;
+      border-radius: 50% / 40%; /* Plus ovale */
+      padding: 20px;
+      max-width: 1000px;
+      height: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      position: relative;
+    }
 
     #tableArea {
       position: relative;
-      width: 500px;
-      height: 400px;
+      width: 600px;
+      height: 500px;
       margin: 0 auto 20px auto;
     }
 
@@ -55,6 +55,11 @@ body {
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
+      white-space: nowrap;
+    }
+
+    #board img {
+      display: inline-block;
     }
 
     #pot {
@@ -140,7 +145,10 @@ body {
     }
 
     #heroHand {
-      margin-bottom: 20px;
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      margin: 0;
     }
 
     #action {
@@ -192,14 +200,9 @@ body {
     button:hover {
       background: #444;
     }
-
-    h1 {
-      font-weight: normal;
-    }
   </style>
 </head>
 <body>
-
   <textarea id="input" placeholder="Colle ici tes mains Winamax..."></textarea><br>
   <button onclick="parseAllHands()" id="loadButton">Charger les mains</button>
 
@@ -214,7 +217,7 @@ body {
       <div id="playersCircle"></div>
     </div>
 
-    <h3>Votre Main</h3>
+    <!-- PAS de titre « Votre Main » -->
     <div id="heroHand" class="cards"></div>
 
     <h3>Action</h3>
@@ -245,7 +248,6 @@ body {
       currentHandIndex = 0;
       parseOneHand(allHands[currentHandIndex]);
 
-      // Cache input et bouton
       document.getElementById('input').style.display = 'none';
       document.getElementById('loadButton').style.display = 'none';
     }
@@ -267,7 +269,7 @@ body {
         if (line.includes('Seat #') && line.includes('is the button')) buttonSeat = line.split(' ')[1].replace('#', '');
         if (line.includes('posts small blind')) smallBlindPlayer = line.split(' ')[0];
         if (line.includes('posts big blind')) bigBlindPlayer = line.split(' ')[0];
-        if (line.startsWith('Dealt to')) { hero = line.split(' ')[2]; heroHand = line.match(/\[(.*?)\]/)[1].split(' '); }
+        if (line.startsWith('Dealt to')) { hero = line.split(' ')[2] + " " + line.split(' ')[3]; heroHand = line.match(/\[(.*?)\]/)[1].split(' '); }
         if (line.startsWith('*** FLOP ***')) { currentBoard = line.match(/\[(.*?)\]/)[1].split(' '); steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line }); }
         else if (line.startsWith('*** TURN ***')) { let turn = line.match(/\[(.*?)\]/)[1].split(' ').pop(); currentBoard.push(turn); steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line }); }
         else if (line.startsWith('*** RIVER ***')) { let river = line.match(/\[(.*?)\]/)[1].split(' ').pop(); currentBoard.push(river); steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line }); }
@@ -278,8 +280,8 @@ body {
       const pc = document.getElementById('playersCircle'); pc.innerHTML = '';
       players.forEach((p, i) => {
         let c = document.createElement('div'); c.className = 'player-container';
-        let a = (360 / players.length) * i - 90, radius = 300;
-        let rad = a * (Math.PI / 180), x = radius * Math.cos(rad), y = radius * Math.sin(rad) * 0.6;
+        let a = (360 / players.length) * i - 90, radius = 400;
+        let rad = a * (Math.PI / 180), x = radius * Math.cos(rad), y = radius * Math.sin(rad) * 0.7;
         c.style.left = `calc(50% + ${x}px)`; c.style.top = `calc(50% + ${y}px)`;
 
         let stack = document.createElement('span'); stack.className = 'role-badge'; stack.innerText = p.stack;
@@ -289,12 +291,11 @@ body {
         role.innerText = rt;
 
         let handDiv = document.createElement('div'); handDiv.className = 'player-hand'; handDiv.id = `player-hand-${i}`;
-
         c.appendChild(stack);
         c.appendChild(b); if (rt) c.appendChild(role); c.appendChild(handDiv); pc.appendChild(c);
 
         handDiv.innerHTML = `<img src="cards/back.png"><img src="cards/back.png">`;
-        if (p.name.startsWith(hero)) {
+        if (p.name === hero) {
           handDiv.innerHTML = ''; heroHand.forEach(card => {
             let img = document.createElement('img'); img.src = `cards/${convertCard(card)}`; handDiv.appendChild(img);
           });
@@ -387,7 +388,6 @@ body {
   </script>
 </body>
 </html>
-
 
 
 
