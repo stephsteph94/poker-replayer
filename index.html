@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Replayer Winamax - Fold Intelligents</title>
+  <title>Replayer Winamax - Board Dynamique</title>
   <style>
     body {
       background: radial-gradient(circle at center, #005c2e 0%, #003f1f 100%);
@@ -195,7 +195,6 @@
 
       let hero = '';
       let heroHand = [];
-      let board = [];
       let phase = 'header';
 
       for (let line of lines) {
@@ -210,11 +209,11 @@
           buttonSeat = line.split(' ')[1].replace('#', '');
         }
 
-        if (line.endsWith('posts small blind') || line.includes('posts small blind')) {
+        if (line.includes('posts small blind')) {
           smallBlindPlayer = line.split(' ')[0];
         }
 
-        if (line.endsWith('posts big blind') || line.includes('posts big blind')) {
+        if (line.includes('posts big blind')) {
           bigBlindPlayer = line.split(' ')[0];
         }
 
@@ -223,21 +222,11 @@
           heroHand = line.match(/\[(.*?)\]/)[1].split(' ');
         }
 
-        if (line.startsWith('*** FLOP ***')) {
-          const flop = line.match(/\[(.*?)\]/)[1].split(' ');
-          board = flop;
-        } else if (line.startsWith('*** TURN ***')) {
-          const turn = line.match(/\[(.*?)\]/)[1].split(' ').pop();
-          board.push(turn);
-        } else if (line.startsWith('*** RIVER ***')) {
-          const river = line.match(/\[(.*?)\]/)[1].split(' ').pop();
-          board.push(river);
-        } else if (line.startsWith('***') || line.startsWith('Dealt to') || line.includes('shows')) {
-          // ignorer
+        if (line.startsWith('***') || line.startsWith('Dealt to') || line.includes('shows')) {
+          // phases
         } else if (hero && phase !== 'header') {
           steps.push({
             heroHand: [...heroHand],
-            board: [...board],
             action: line
           });
         }
@@ -300,23 +289,35 @@
     function showStep() {
       if (steps.length === 0) return;
 
-      // Recompute folded players from step 0 to currentStep:
+      // Reconstruire qui a foldé
       foldedPlayers = [];
       for (let i = 0; i <= currentStep; i++) {
-        const actionLine = steps[i].action;
-        const acting = players.find(p => actionLine.startsWith(p.name.split(' ')[0]));
+        const act = steps[i].action;
+        const acting = players.find(p => act.startsWith(p.name.split(' ')[0]));
         if (acting) {
-          const clean = actionLine.replace(acting.name.split(' ')[0], '').trim();
+          const clean = act.replace(acting.name.split(' ')[0], '').trim();
           if (clean.includes('fold') && !foldedPlayers.includes(acting.name)) {
             foldedPlayers.push(acting.name);
           }
         }
       }
 
-      const step = steps[currentStep];
+      // Construire le board dynamique
+      let visibleBoard = [];
+      for (let i = 0; i <= currentStep; i++) {
+        const act = steps[i].action;
+        if (act.startsWith('*** FLOP ***')) {
+          visibleBoard = act.match(/\[(.*?)\]/)[1].split(' ');
+        } else if (act.startsWith('*** TURN ***')) {
+          visibleBoard.push(act.match(/\[(.*?)\]/)[1].split(' ').pop());
+        } else if (act.startsWith('*** RIVER ***')) {
+          visibleBoard.push(act.match(/\[(.*?)\]/)[1].split(' ').pop());
+        }
+      }
+
       const boardDiv = document.getElementById('board');
       boardDiv.innerHTML = '';
-      step.board.forEach(card => {
+      visibleBoard.forEach(card => {
         const img = document.createElement('img');
         img.src = `cards/${convertCard(card)}`;
         boardDiv.appendChild(img);
@@ -324,7 +325,7 @@
 
       const heroDiv = document.getElementById('heroHand');
       heroDiv.innerHTML = '';
-      step.heroHand.forEach(card => {
+      steps[currentStep].heroHand.forEach(card => {
         const img = document.createElement('img');
         img.src = `cards/${convertCard(card)}`;
         heroDiv.appendChild(img);
@@ -344,7 +345,7 @@
         }
       });
 
-      const actionLine = step.action;
+      const actionLine = steps[currentStep].action;
       const actingPlayer = players.find(p => actionLine.startsWith(p.name.split(' ')[0]));
       if (actingPlayer) {
         const index = players.findIndex(p => p.name === actingPlayer.name);
@@ -357,7 +358,7 @@
         badge.classList.add('player-active');
       }
 
-      document.getElementById('action').innerText = step.action;
+      document.getElementById('action').innerText = actionLine;
     }
 
     function nextStep() {
@@ -400,5 +401,6 @@
   </script>
 </body>
 </html>
+
 
 
