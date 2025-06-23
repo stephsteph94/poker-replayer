@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Replayer Winamax - Board Dynamique</title>
+  <title>Replayer Winamax - Final Board Dynamique</title>
   <style>
     body {
       background: radial-gradient(circle at center, #005c2e 0%, #003f1f 100%);
@@ -195,6 +195,7 @@
 
       let hero = '';
       let heroHand = [];
+      let currentBoard = [];
       let phase = 'header';
 
       for (let line of lines) {
@@ -222,11 +223,21 @@
           heroHand = line.match(/\[(.*?)\]/)[1].split(' ');
         }
 
-        if (line.startsWith('***') || line.startsWith('Dealt to') || line.includes('shows')) {
-          // phases
+        if (line.startsWith('*** FLOP ***')) {
+          const flop = line.match(/\[(.*?)\]/)[1].split(' ');
+          currentBoard = flop;
+        } else if (line.startsWith('*** TURN ***')) {
+          const turn = line.match(/\[(.*?)\]/)[1].split(' ').pop();
+          currentBoard.push(turn);
+        } else if (line.startsWith('*** RIVER ***')) {
+          const river = line.match(/\[(.*?)\]/)[1].split(' ').pop();
+          currentBoard.push(river);
+        } else if (line.startsWith('***') || line.startsWith('Dealt to') || line.includes('shows')) {
+          // phases, on ne push pas encore
         } else if (hero && phase !== 'header') {
           steps.push({
             heroHand: [...heroHand],
+            board: [...currentBoard], // ✅ on garde le board correct ici
             action: line
           });
         }
@@ -289,7 +300,7 @@
     function showStep() {
       if (steps.length === 0) return;
 
-      // Reconstruire qui a foldé
+      // Recompute folded players up to current step
       foldedPlayers = [];
       for (let i = 0; i <= currentStep; i++) {
         const act = steps[i].action;
@@ -302,7 +313,7 @@
         }
       }
 
-      // Construire le board dynamique
+      // Build dynamic board
       let visibleBoard = [];
       for (let i = 0; i <= currentStep; i++) {
         const act = steps[i].action;
@@ -401,6 +412,7 @@
   </script>
 </body>
 </html>
+
 
 
 
