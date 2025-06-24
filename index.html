@@ -2,26 +2,19 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Winamax Replayer - COULEUR FINALE</title>
+  <title>Winamax Replayer — FINAL BOARD ACTION OK</title>
   <style>
     body {
-      background: #001f3f; /* 🔵 Bleu foncé */
+      background: #001f3f;
       color: #fff;
       font-family: 'Segoe UI', Arial, sans-serif;
       text-align: center;
       padding: 10px;
     }
-
     #mainCounter {
       font-size: 20px;
       font-weight: bold;
     }
-
-    #pot {
-      font-size: 20px;
-      font-weight: bold;
-    }
-
     textarea {
       width: 90%;
       height: 80px;
@@ -29,12 +22,11 @@
       padding: 10px;
       font-size: 14px;
     }
-
     #table {
       margin-top: 0;
-      background: #007f3f; /* 🟢 Vert tapis de poker */
+      background: #007f3f;
       border: 2px solid #111;
-      border-radius: 50% / 40%; /* Plus ovale */
+      border-radius: 50% / 40%;
       padding: 20px;
       max-width: 1000px;
       height: 600px;
@@ -42,14 +34,12 @@
       margin-right: auto;
       position: relative;
     }
-
     #tableArea {
       position: relative;
       width: 600px;
       height: 500px;
-      margin: 0 auto 20px auto;
+      margin: 0 auto;
     }
-
     #board {
       position: absolute;
       top: 50%;
@@ -57,26 +47,22 @@
       transform: translate(-50%, -50%);
       white-space: nowrap;
     }
-
     #board img {
       display: inline-block;
+      vertical-align: middle;
     }
-
     #pot {
       position: absolute;
       top: calc(50% + 80px);
       left: 50%;
       transform: translateX(-50%);
+      font-size: 20px;
+      font-weight: bold;
     }
-
     #playersCircle {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0; width: 100%; height: 100%;
     }
-
     .player-container {
       position: absolute;
       display: flex;
@@ -84,42 +70,38 @@
       align-items: center;
       transform: translate(-50%, -50%);
     }
-
     .player-badge {
       padding: 10px 15px;
       border-radius: 30px;
       background: gray;
       color: white;
       font-weight: bold;
-      transition: all 0.2s;
       min-width: 80px;
       text-align: center;
     }
-
     .player-hand {
+      display: flex;
+      justify-content: center;
       margin-top: 5px;
     }
-
-    .player-hand img {
-      width: 30px;
+    .player-hand img,
+    .cards img {
+      width: 50px;
       height: auto;
-      margin: 0 2px;
+      margin: 3px;
       border-radius: 4px;
       background: white;
       padding: 2px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
     }
-
     .player-active {
       border: 3px solid #fff;
       box-shadow: 0 0 10px #fff;
     }
-
     .player-folded {
       filter: grayscale(100%);
       opacity: 0.5;
     }
-
     .role-badge {
       display: block;
       margin: 3px 0;
@@ -129,38 +111,12 @@
       padding: 2px 6px;
       font-size: 12px;
     }
-
-    .cards {
-      margin: 10px auto;
-    }
-
-    .cards img {
-      width: 60px;
-      height: auto;
-      margin: 3px;
-      border-radius: 4px;
-      background: white;
-      padding: 2px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    }
-
     #heroHand {
       position: absolute;
-      bottom: 20px;
+      bottom: 50px;
       right: 20px;
       margin: 0;
     }
-
-    #action {
-      background: rgba(0,0,0,0.5);
-      padding: 15px;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
     .arrow {
       position: absolute;
       top: 50%;
@@ -172,34 +128,32 @@
       cursor: pointer;
       user-select: none;
     }
-
-    .arrow:hover {
-      background: rgba(0,0,0,0.6);
-    }
-
-    .arrow-left {
-      left: -70px;
-    }
-
-    .arrow-right {
-      right: -70px;
-    }
-
-    button {
-      background: #222;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
+    .arrow:hover { background: rgba(0,0,0,0.6); }
+    .arrow-left { left: -70px; }
+    .arrow-right { right: -70px; }
+    #bottomBar {
+      position: fixed; bottom: 0; left: 0; width: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: space-between;
+      align-items: center;
       padding: 10px 20px;
-      margin: 5px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.2s;
+      box-sizing: border-box;
     }
-
-    button:hover {
-      background: #444;
+    #action {
+      flex: 1;
+      margin: 0 20px;
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+      color: #fff;
     }
+    .nav-bottom {
+      background: #222; color: #fff; border: none;
+      border-radius: 6px; padding: 10px 20px;
+      font-size: 14px; cursor: pointer;
+    }
+    .nav-bottom:hover { background: #444; }
   </style>
 </head>
 <body>
@@ -210,35 +164,26 @@
     <div id="mainCounter" style="position: absolute; top: 10px; right: 20px;"></div>
     <div class="arrow arrow-left" onclick="prevStep()">⏪</div>
     <div class="arrow arrow-right" onclick="nextStep()">⏩</div>
-
     <div id="tableArea">
       <div id="board" class="cards"></div>
       <div id="pot"></div>
       <div id="playersCircle"></div>
     </div>
-
-    <!-- PAS de titre « Votre Main » -->
     <div id="heroHand" class="cards"></div>
+  </div>
 
-    <h3>Action</h3>
+  <div id="bottomBar">
+    <button class="nav-bottom" onclick="prevHand()">⏮️ Main Précédente</button>
     <div id="action"></div>
-
-    <div style="margin-top:20px;">
-      <button onclick="prevHand()">⏮️ Main Précédente</button>
-      <button onclick="nextHand()">⏭️ Main Suivante</button>
-    </div>
+    <button class="nav-bottom" onclick="nextHand()">⏭️ Main Suivante</button>
   </div>
 
   <script>
     let allHands = [], currentHandIndex = 0, steps = [], currentStep = 0, players = [], foldedPlayers = [], hero = '', heroHand = [];
-    const playerColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4'];
+    const playerColors = ['#e6194b','#3cb44b','#ffe119','#4363d8','#f58231','#911eb4'];
 
     function formatPot(amount) {
-      if (amount >= 1000) {
-        return (amount / 1000).toFixed(1).replace('.', ',') + 'k';
-      } else {
-        return amount.toString();
-      }
+      return amount >= 1000 ? (amount/1000).toFixed(1).replace('.', ',') + 'k' : amount.toString();
     }
 
     function parseAllHands() {
@@ -247,29 +192,43 @@
       allHands = rawHands.map(h => 'Winamax Poker' + h);
       currentHandIndex = 0;
       parseOneHand(allHands[currentHandIndex]);
-
       document.getElementById('input').style.display = 'none';
       document.getElementById('loadButton').style.display = 'none';
+      document.getElementById('bottomBar').style.display = 'flex';
     }
 
     function parseOneHand(text) {
-      steps = []; currentStep = 0; players = []; foldedPlayers = [];
+      steps = [];
+      currentStep = 0;
+      foldedPlayers = [];
+      let seatMap = {};
+      players = [];
+
       let buttonSeat = '', smallBlindPlayer = '', bigBlindPlayer = '', lines = text.split('\n').map(l => l.trim()).filter(l => l !== ''), currentBoard = [], phase = 'header';
 
       for (let line of lines) {
         if (line.startsWith('Seat ')) {
           let parts = line.split(':');
+          let seat = parts[0];
           let name = parts[1].split('(')[0].trim();
           let stackMatch = parts[1].match(/\((\d+)\)/);
           let stack = stackMatch ? stackMatch[1] : '';
-          if (!players.find(p => p.name === name)) {
-            players.push({ seat: parts[0], name: name, stack: stack, color: playerColors[players.length] });
+          if (!seatMap[seat]) {
+            seatMap[seat] = {
+              seat: seat,
+              name: name,
+              stack: stack,
+              color: playerColors[Object.keys(seatMap).length % playerColors.length]
+            };
           }
         }
         if (line.includes('Seat #') && line.includes('is the button')) buttonSeat = line.split(' ')[1].replace('#', '');
         if (line.includes('posts small blind')) smallBlindPlayer = line.split(' ')[0];
         if (line.includes('posts big blind')) bigBlindPlayer = line.split(' ')[0];
-        if (line.startsWith('Dealt to')) { hero = line.split(' ')[2] + " " + line.split(' ')[3]; heroHand = line.match(/\[(.*?)\]/)[1].split(' '); }
+        if (line.startsWith('Dealt to')) {
+          hero = line.split(' ')[2] + (line.split(' ')[3] ? ' ' + line.split(' ')[3] : '');
+          heroHand = line.match(/\[(.*?)\]/)[1].split(' ');
+        }
         if (line.startsWith('*** FLOP ***')) { currentBoard = line.match(/\[(.*?)\]/)[1].split(' '); steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line }); }
         else if (line.startsWith('*** TURN ***')) { let turn = line.match(/\[(.*?)\]/)[1].split(' ').pop(); currentBoard.push(turn); steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line }); }
         else if (line.startsWith('*** RIVER ***')) { let river = line.match(/\[(.*?)\]/)[1].split(' ').pop(); currentBoard.push(river); steps.push({ heroHand: [...heroHand], board: [...currentBoard], action: line }); }
@@ -277,27 +236,32 @@
         if (line.startsWith('*** PRE-FLOP ***')) phase = 'action';
       }
 
+      players = Object.values(seatMap);
+
       const pc = document.getElementById('playersCircle'); pc.innerHTML = '';
       players.forEach((p, i) => {
         let c = document.createElement('div'); c.className = 'player-container';
-        let a = (360 / players.length) * i - 90, radius = 400;
-        let rad = a * (Math.PI / 180), x = radius * Math.cos(rad), y = radius * Math.sin(rad) * 0.7;
-        c.style.left = `calc(50% + ${x}px)`; c.style.top = `calc(50% + ${y}px)`;
-
+        let a = (360 / players.length) * i - 90;
+        let radiusX = 400, radiusY = 250;
+        let rad = a * (Math.PI / 180);
+        let x = radiusX * Math.cos(rad);
+        let y = radiusY * Math.sin(rad);
+        c.style.left = `calc(50% + ${x}px)`;
+        c.style.top = `calc(50% + ${y}px)`;
         let stack = document.createElement('span'); stack.className = 'role-badge'; stack.innerText = p.stack;
         let b = document.createElement('span'); b.innerText = p.name.split(' ')[0]; b.className = 'player-badge'; b.style.background = p.color; b.id = `player-${i}`;
         let role = document.createElement('span'); role.className = 'role-badge';
         let rt = ''; if (p.seat.includes(buttonSeat)) rt = 'BTN'; else if (p.name.startsWith(smallBlindPlayer)) rt = 'SB'; else if (p.name.startsWith(bigBlindPlayer)) rt = 'BB';
         role.innerText = rt;
-
         let handDiv = document.createElement('div'); handDiv.className = 'player-hand'; handDiv.id = `player-hand-${i}`;
-        c.appendChild(stack);
-        c.appendChild(b); if (rt) c.appendChild(role); c.appendChild(handDiv); pc.appendChild(c);
-
+        handDiv.style.display = 'flex';
+        c.appendChild(stack); c.appendChild(b); if (rt) c.appendChild(role); c.appendChild(handDiv); pc.appendChild(c);
         handDiv.innerHTML = `<img src="cards/back.png"><img src="cards/back.png">`;
         if (p.name === hero) {
           handDiv.innerHTML = ''; heroHand.forEach(card => {
-            let img = document.createElement('img'); img.src = `cards/${convertCard(card)}`; handDiv.appendChild(img);
+            let img = document.createElement('img');
+            img.src = `cards/${convertCard(card)}`;
+            handDiv.appendChild(img);
           });
         }
       });
@@ -322,6 +286,7 @@
               let cards = match[1].split(' ');
               let handDiv = document.getElementById(`player-hand-${players.indexOf(p)}`);
               handDiv.innerHTML = '';
+              handDiv.style.display = 'flex';
               cards.forEach(card => {
                 let img = document.createElement('img');
                 img.src = `cards/${convertCard(card)}`;
@@ -345,27 +310,19 @@
         let nums = act.match(/\d+/g);
         if (nums) {
           let num = parseInt(nums[nums.length - 1]);
-          if (act.includes('posts') || act.includes('bets')) {
-            potAmount += num;
-          } else if (act.includes('raises')) {
-            if (lastRaises[who]) {
-              potAmount += (num - lastRaises[who]);
-            } else {
-              potAmount += num;
-            }
+          if (act.includes('posts') || act.includes('bets')) { potAmount += num; }
+          else if (act.includes('raises')) {
+            if (lastRaises[who]) { potAmount += (num - lastRaises[who]); } else { potAmount += num; }
             lastRaises[who] = num;
           }
         }
       }
       document.getElementById('pot').innerText = `🪙 Pot: ${formatPot(potAmount)}`;
-
       players.forEach((p, i) => {
         let b = document.getElementById(`player-${i}`);
         b.classList.remove('player-active');
-        if (foldedPlayers.includes(p.name)) b.classList.add('player-folded');
-        else b.classList.remove('player-folded');
+        if (foldedPlayers.includes(p.name)) b.classList.add('player-folded'); else b.classList.remove('player-folded');
       });
-
       const actionLine = steps[currentStep].action, ap = players.find(p => actionLine.startsWith(p.name.split(' ')[0]));
       if (ap) {
         let i = players.findIndex(p => p.name === ap.name);
@@ -388,6 +345,7 @@
   </script>
 </body>
 </html>
+
 
 
 
